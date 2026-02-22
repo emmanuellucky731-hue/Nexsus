@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXUS — Stories · Videos · Community · News</title>
+<style>
+  /* ── 100% SELF-CONTAINED: zero external fonts, zero CDN, zero APIs ── */
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #18181f;
+    --surface3: #1e1e28;
+    --border: rgba(255,255,255,0.07);
+    --accent: #e8ff47;
+    --accent2: #7c5cfc;
+    --accent3: #ff5c8a;
+    --accent4: #00d4aa;
+    --text: #f0f0f5;
+    --text2: #8888aa;
+    --text3: #444458;
+    --premium: linear-gradient(135deg, #f7c948, #ff8c42);
+    --radius: 16px;
+    --radius-sm: 10px;
+    --font-display: 'Segoe UI', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    --font-body: 'Segoe UI', 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    --font-serif: Georgia, 'Times New Roman', Times, serif;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,255,255,0.005) 2px,rgba(255,255,255,0.005) 4px);
+    pointer-events: none; z-index: 9999;
+  }
+
+  /* ─── SPLASH ─────────────────────────────────── */
+  #splash {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    z-index: 1000;
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  #splash.hidden { opacity:0; transform:scale(1.04); pointer-events:none; }
+  .splash-logo {
+    font-family: var(--font-display);
+    font-size: 72px; font-weight: 900; letter-spacing: -4px;
+    color: var(--accent);
+    text-shadow: 0 0 80px rgba(232,255,71,0.5), 0 0 160px rgba(232,255,71,0.2);
+    animation: splashPulse 2s ease-in-out infinite;
+  }
+  .splash-tagline { font-size: 11px; letter-spacing: 5px; text-transform: uppercase; color: var(--text3); margin-top: 10px; }
+  .splash-bar-wrap { width: 220px; height: 2px; background: var(--surface3); border-radius: 2px; margin-top: 52px; overflow: hidden; }
+  .splash-bar { height: 100%; background: linear-gradient(90deg, var(--accent2), var(--accent), var(--accent4)); animation: loadBar 2.1s cubic-bezier(.4,0,.2,1) forwards; }
+  @keyframes splashPulse { 0%,100%{opacity:1} 50%{opacity:0.65} }
+  @keyframes loadBar { from{width:0} to{width:100%} }
+
+  /* ─── LAYOUT ─────────────────────────────────── */
+  .app { display:flex; min-height:100vh; }
+
+  /* ─── SIDEBAR ────────────────────────────────── */
+  .sidebar {
+    width: 256px; background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    position: fixed; top:0; left:0; bottom:0; z-index:100;
+    transition: transform 0.3s ease;
+  }
+  .sidebar-brand { padding: 26px 22px 18px; border-bottom: 1px solid var(--border); }
+  .brand-name { font-family: var(--font-display); font-size: 26px; font-weight: 900; letter-spacing: -1.5px; color: var(--accent); text-shadow: 0 0 30px rgba(232,255,71,0.3); }
+  .brand-tagline { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text3); margin-top: 3px; }
+  .nav-group { padding: 18px 10px 6px; }
+  .nav-group-label { font-size: 9px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--text3); padding: 0 12px; margin-bottom: 5px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 11px;
+    padding: 10px 13px; border-radius: var(--radius-sm);
+    cursor: pointer; color: var(--text2); font-size: 13.5px; font-weight: 500;
+    transition: all 0.18s; user-select: none;
+  }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: rgba(232,255,71,0.09); color: var(--accent); }
+  .nav-ico { font-size: 17px; width: 22px; text-align: center; }
+  .nav-badge { margin-left: auto; font-size: 9.5px; font-weight: 800; padding: 2px 7px; border-radius: 20px; color: #fff; background: var(--accent3); }
+  .nav-badge.live { background: var(--accent4); }
+  .sidebar-footer { margin-top: auto; padding: 14px 10px; border-top: 1px solid var(--border); }
+  .user-row { display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: var(--radius-sm); cursor: pointer; transition: background 0.18s; }
+  .user-row:hover { background: var(--surface2); }
+  .u-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--accent2), var(--accent3)); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; color: #fff; flex-shrink: 0; }
+  .u-name { font-size: 13px; font-weight: 700; color: var(--text); }
+  .u-role { font-size: 10px; background: var(--premium); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; }
+
+  /* ─── MAIN ───────────────────────────────────── */
+  .main { margin-left: 256px; flex:1; display:flex; flex-direction:column; }
+
+  /* ─── TOPBAR ─────────────────────────────────── */
+  .topbar {
+    background: rgba(10,10,15,0.88); backdrop-filter: blur(24px);
+    border-bottom: 1px solid var(--border);
+    height: 62px; padding: 0 28px;
+    display: flex; align-items: center; gap: 14px;
+    position: sticky; top:0; z-index:50;
+  }
+  .hamburger { display:none; width:36px; height:36px; border-radius:50%; background:var(--surface2); border:1px solid var(--border); align-items:center; justify-content:center; cursor:pointer; font-size:17px; color:var(--text2); }
+  .search-wrap { flex:1; max-width:460px; background:var(--surface2); border:1px solid var(--border); border-radius:50px; display:flex; align-items:center; padding:0 15px; gap:9px; transition:border-color 0.2s; }
+  .search-wrap:focus-within { border-color:rgba(232,255,71,0.35); }
+  .search-wrap input { flex:1; background:none; border:none; outline:none; color:var(--text); font-family:var(--font-body); font-size:13.5px; padding:9px 0; }
+  .search-wrap input::placeholder { color:var(--text3); }
+  .tb-actions { display:flex; gap:9px; margin-left:auto; }
+  .tb-btn { width:36px; height:36px; border-radius:50%; background:var(--surface2); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text2); font-size:15px; transition:all 0.18s; position:relative; }
+  .tb-btn:hover { background:var(--surface3); color:var(--text); }
+  .notif-dot { position:absolute; top:5px; right:5px; width:8px; height:8px; background:var(--accent3); border-radius:50%; border:2px solid var(--bg); }
+
+  /* ─── PAGES ──────────────────────────────────── */
+  .page { display:none; animation:fadeUp 0.28s ease; }
+  .page.active { display:block; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+  .pg { padding: 30px; }
+  .pg-title { font-family:var(--font-display); font-size:30px; font-weight:900; letter-spacing:-1.2px; line-height:1.1; margin-bottom:5px; }
+  .pg-title em { color:var(--accent); font-style:normal; }
+  .pg-sub { font-size:13px; color:var(--text2); margin-bottom:26px; }
+
+  /* ─── TABS ───────────────────────────────────── */
+  .tabs { display:flex; gap:3px; background:var(--surface); border:1px solid var(--border); border-radius:50px; padding:4px; width:fit-content; margin-bottom:22px; flex-wrap:wrap; }
+  .tab { padding:7px 18px; border-radius:50px; font-size:12.5px; font-weight:500; cursor:pointer; color:var(--text2); transition:all 0.18s; user-select:none; }
+  .tab.active { background:var(--accent); color:var(--bg); font-weight:800; }
+
+  /* ─── WIDGET ─────────────────────────────────── */
+  .widget { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px; margin-bottom:14px; }
+  .widget-hd { font-family:var(--font-display); font-size:13px; font-weight:800; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; }
+  .widget-more { font-size:11.5px; color:var(--accent); cursor:pointer; font-weight:600; }
+
+  /* ─── HOME ───────────────────────────────────── */
+  .stories-strip { display:flex; gap:13px; overflow-x:auto; padding-bottom:6px; margin-bottom:28px; scrollbar-width:none; }
+  .stories-strip::-webkit-scrollbar { display:none; }
+  .story-chip { flex-shrink:0; width:82px; text-align:center; cursor:pointer; }
+  .story-ring { width:64px; height:64px; border-radius:50%; padding:2.5px; margin:0 auto 7px; background:linear-gradient(135deg,var(--accent),var(--accent2),var(--accent3)); }
+  .story-ring.seen { background:var(--surface3); }
+  .story-face { width:100%; height:100%; border-radius:50%; background:var(--surface2); border:2px solid var(--bg); display:flex; align-items:center; justify-content:center; font-size:20px; }
+  .story-label { font-size:10.5px; color:var(--text2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .story-chip.add-chip .story-ring { background:var(--surface3); }
+  .story-chip.add-chip .story-face { color:var(--accent); font-size:26px; }
+
+  .feed-grid { display:grid; grid-template-columns:1fr 360px; gap:22px; }
+
+  .create-box { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:16px; }
+  .create-row { display:flex; align-items:center; gap:11px; }
+  .create-field { flex:1; background:var(--surface2); border:1px solid var(--border); border-radius:50px; padding:10px 17px; color:var(--text); font-family:var(--font-body); font-size:13.5px; outline:none; transition:border-color 0.2s; }
+  .create-field:focus { border-color:rgba(232,255,71,0.3); }
+  .create-field::placeholder { color:var(--text3); }
+  .create-tools { display:flex; gap:5px; flex-wrap:wrap; margin-top:13px; padding-top:13px; border-top:1px solid var(--border); }
+  .create-btn { display:flex; align-items:center; gap:6px; padding:7px 13px; border-radius:8px; cursor:pointer; font-size:12.5px; font-weight:500; color:var(--text2); transition:background 0.18s; }
+  .create-btn:hover { background:var(--surface2); color:var(--text); }
+
+  .status-banner { background:linear-gradient(135deg,rgba(124,92,252,0.14),rgba(255,92,138,0.09)); border:1px solid rgba(124,92,252,0.2); border-radius:var(--radius); padding:17px 20px; margin-bottom:14px; display:flex; align-items:center; gap:15px; }
+  .sb-icon { font-size:28px; }
+  .sb-info { flex:1; }
+  .sb-title { font-size:14px; font-weight:700; margin-bottom:3px; }
+  .sb-sub { font-size:11.5px; color:var(--text2); }
+  .sb-timer { font-family:var(--font-display); font-size:19px; font-weight:900; color:var(--accent3); letter-spacing:-0.5px; }
+
+  .post-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); margin-bottom:14px; overflow:hidden; transition:border-color 0.18s; }
+  .post-card:hover { border-color:rgba(255,255,255,0.13); }
+  .post-head { display:flex; align-items:center; gap:11px; padding:14px 16px; }
+  .p-avatar { width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:800; color:#fff; flex-shrink:0; }
+  .p-meta { flex:1; }
+  .p-author { font-size:13.5px; font-weight:700; display:flex; align-items:center; gap:5px; }
+  .p-verified { color:var(--accent4); font-size:12px; }
+  .p-time { font-size:11px; color:var(--text3); }
+  .p-tag { font-size:9.5px; letter-spacing:1.5px; text-transform:uppercase; padding:3px 9px; border-radius:20px; font-weight:800; }
+  .tag-ai { background:rgba(0,212,170,0.12); color:var(--accent4); }
+  .tag-video { background:rgba(255,92,138,0.14); color:var(--accent3); }
+  .tag-story { background:rgba(124,92,252,0.14); color:var(--accent2); }
+  .tag-news { background:rgba(232,255,71,0.1); color:var(--accent); }
+  .p-body { padding:0 16px 13px; }
+  .p-title { font-family:var(--font-serif); font-size:17px; font-weight:700; line-height:1.35; margin-bottom:7px; }
+  .p-text { font-size:13px; color:var(--text2); line-height:1.6; }
+  .p-media { background:var(--surface2); aspect-ratio:16/9; display:flex; align-items:center; justify-content:center; font-size:44px; cursor:pointer; position:relative; overflow:hidden; margin-bottom:2px; }
+  .p-media-grad { position:absolute; inset:0; }
+  .p-play { position:absolute; width:52px; height:52px; border-radius:50%; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; font-size:18px; color:#fff; backdrop-filter:blur(6px); border:2px solid rgba(255,255,255,0.2); transition:transform 0.2s; }
+  .p-media:hover .p-play { transform:scale(1.1); }
+  .p-actions { display:flex; align-items:center; gap:2px; padding:10px; border-top:1px solid var(--border); }
+  .act-btn { display:flex; align-items:center; gap:5px; padding:7px 12px; border-radius:8px; cursor:pointer; color:var(--text2); font-size:12.5px; font-weight:500; transition:all 0.18s; background:none; border:none; font-family:var(--font-body); }
+  .act-btn:hover { background:var(--surface2); color:var(--text); }
+  .act-btn.liked { color:var(--accent3); }
+  .act-ml { margin-left:auto; }
+
+  .trend-row { display:flex; align-items:center; gap:11px; padding:9px 0; border-bottom:1px solid var(--border); cursor:pointer; transition:padding-left 0.2s; }
+  .trend-row:last-child { border-bottom:none; }
+  .trend-row:hover { padding-left:4px; }
+  .trend-n { font-family:var(--font-display); font-size:20px; font-weight:900; color:var(--surface3); width:26px; }
+  .trend-info { flex:1; }
+  .trend-topic { font-size:12.5px; font-weight:700; }
+  .trend-count { font-size:10.5px; color:var(--text3); }
+
+  .ch-row { display:flex; align-items:center; gap:11px; padding:9px 0; border-bottom:1px solid var(--border); cursor:pointer; }
+  .ch-row:last-child { border-bottom:none; }
+  .ch-icon { width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:17px; flex-shrink:0; }
+  .ch-info { flex:1; }
+  .ch-name { font-size:12.5px; font-weight:700; }
+  .ch-subs { font-size:10.5px; color:var(--text3); }
+  .follow-btn { padding:4px 13px; background:rgba(232,255,71,0.08); color:var(--accent); border:1px solid rgba(232,255,71,0.22); border-radius:20px; font-size:11.5px; font-weight:700; cursor:pointer; transition:all 0.18s; }
+  .follow-btn:hover { background:var(--accent); color:var(--bg); }
+  .follow-btn.ing { background:var(--surface2); color:var(--text2); border-color:var(--border); }
+
+  /* ─── VIDEOS ─────────────────────────────────── */
+  .video-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:18px; }
+  .v-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; cursor:pointer; transition:all 0.2s; }
+  .v-card:hover { border-color:rgba(255,255,255,0.15); transform:translateY(-2px); box-shadow:0 14px 44px rgba(0,0,0,0.45); }
+  .v-thumb { aspect-ratio:16/9; position:relative; display:flex; align-items:center; justify-content:center; font-size:38px; background:var(--surface2); overflow:hidden; }
+  .v-grad { position:absolute; inset:0; }
+  .v-dur { position:absolute; bottom:7px; right:7px; background:rgba(0,0,0,0.82); color:#fff; font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:4px; }
+  .v-info { padding:13px; }
+  .v-title { font-size:13.5px; font-weight:700; line-height:1.4; margin-bottom:7px; }
+  .v-meta { font-size:11.5px; color:var(--text3); }
+  .v-author { color:var(--text2); }
+
+  /* ─── STORIES ────────────────────────────────── */
+  .stories-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:16px; }
+  .s-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px; cursor:pointer; transition:all 0.2s; }
+  .s-card:hover { border-color:rgba(232,255,71,0.22); transform:translateY(-2px); }
+  .s-type { font-size:9.5px; letter-spacing:2px; text-transform:uppercase; color:var(--accent); font-weight:800; margin-bottom:8px; }
+  .s-title { font-family:var(--font-serif); font-size:19px; font-weight:700; line-height:1.3; margin-bottom:9px; }
+  .s-excerpt { font-size:12.5px; color:var(--text2); line-height:1.6; margin-bottom:13px; }
+  .s-footer { display:flex; align-items:center; gap:9px; }
+  .s-read { font-size:10.5px; color:var(--text3); }
+  .earn-tag { margin-left:auto; background:rgba(0,212,170,0.1); color:var(--accent4); font-size:10.5px; font-weight:700; padding:3px 9px; border-radius:20px; }
+
+  /* ─── NEWS ───────────────────────────────────── */
+  .news-hero { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); display:grid; grid-template-columns:1fr 1fr; overflow:hidden; margin-bottom:16px; }
+  .news-hero-media { background:var(--surface2); display:flex; align-items:center; justify-content:center; font-size:72px; position:relative; overflow:hidden; min-height:230px; }
+  .news-hero-body { padding:26px; display:flex; flex-direction:column; justify-content:center; }
+  .ai-verified { display:inline-flex; align-items:center; gap:5px; font-size:10px; letter-spacing:1.5px; text-transform:uppercase; font-weight:800; color:var(--accent4); background:rgba(0,212,170,0.1); padding:4px 11px; border-radius:20px; margin-bottom:11px; width:fit-content; }
+  .news-hero-title { font-family:var(--font-serif); font-size:20px; font-weight:700; line-height:1.3; margin-bottom:9px; }
+  .news-hero-excerpt { font-size:12.5px; color:var(--text2); line-height:1.6; margin-bottom:14px; }
+  .news-meta { font-size:11px; color:var(--text3); }
+  .news-row { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); padding:14px 16px; margin-bottom:9px; display:flex; gap:14px; cursor:pointer; transition:border-color 0.18s; }
+  .news-row:hover { border-color:rgba(255,255,255,0.13); }
+  .news-ico { font-size:28px; flex-shrink:0; width:40px; text-align:center; }
+  .news-body { flex:1; }
+  .news-cat { font-size:9.5px; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:var(--accent); margin-bottom:3px; }
+  .news-title { font-size:13.5px; font-weight:700; line-height:1.4; margin-bottom:4px; }
+  .news-time { font-size:10.5px; color:var(--text3); }
+  .accuracy-col { display:flex; flex-direction:column; align-items:flex-end; gap:4px; margin-left:auto; justify-content:center; }
+  .acc-bar { width:56px; height:3px; background:var(--surface3); border-radius:2px; overflow:hidden; }
+  .acc-fill { height:100%; background:var(--accent4); border-radius:2px; }
+  .acc-lbl { font-size:9.5px; color:var(--text3); }
+
+  /* ─── COMMUNITY ──────────────────────────────── */
+  .com-hero { background:linear-gradient(135deg,rgba(124,92,252,0.14),rgba(232,255,71,0.05)); border:1px solid rgba(124,92,252,0.2); border-radius:var(--radius); padding:26px; margin-bottom:22px; display:flex; align-items:center; gap:18px; }
+  .com-hero-icon { font-size:44px; }
+  .com-hero-info { flex:1; }
+  .com-hero-name { font-family:var(--font-display); font-size:22px; font-weight:900; margin-bottom:5px; }
+  .com-stats { display:flex; gap:18px; }
+  .com-stat { font-size:12.5px; color:var(--text2); }
+  .com-stat strong { color:var(--text); }
+  .join-all-btn { padding:11px 26px; background:var(--accent2); color:#fff; border:none; border-radius:50px; font-size:13.5px; font-weight:800; cursor:pointer; font-family:var(--font-body); transition:opacity 0.18s; }
+  .join-all-btn:hover { opacity:0.84; }
+  .com-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:14px; }
+  .com-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px; cursor:pointer; transition:all 0.2s; }
+  .com-card:hover { border-color:rgba(124,92,252,0.3); transform:translateY(-2px); }
+  .com-card-ico { font-size:28px; margin-bottom:11px; }
+  .com-card-name { font-family:var(--font-display); font-size:15px; font-weight:800; margin-bottom:5px; }
+  .com-card-desc { font-size:12px; color:var(--text2); line-height:1.5; margin-bottom:13px; }
+  .com-card-foot { display:flex; align-items:center; justify-content:space-between; }
+  .com-members { font-size:10.5px; color:var(--text3); }
+
+  /* ─── MESSAGES ───────────────────────────────── */
+  .msg-layout { display:grid; grid-template-columns:300px 1fr; height:calc(100vh - 122px); background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
+  .msg-sidebar { border-right:1px solid var(--border); display:flex; flex-direction:column; }
+  .msg-search-wrap { padding:14px; border-bottom:1px solid var(--border); }
+  .msg-search { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:50px; padding:8px 15px; color:var(--text); font-family:var(--font-body); font-size:12.5px; outline:none; }
+  .msg-search::placeholder { color:var(--text3); }
+  .convo-list { flex:1; overflow-y:auto; }
+  .convo { display:flex; align-items:center; gap:11px; padding:13px 15px; cursor:pointer; border-bottom:1px solid var(--border); transition:background 0.18s; }
+  .convo:hover { background:var(--surface2); }
+  .convo.active { background:rgba(232,255,71,0.06); }
+  .convo-av { width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:800; color:#fff; flex-shrink:0; position:relative; }
+  .online-dot { position:absolute; bottom:0; right:0; width:11px; height:11px; background:var(--accent4); border-radius:50%; border:2px solid var(--surface); }
+  .convo-info { flex:1; min-width:0; }
+  .convo-top { display:flex; justify-content:space-between; }
+  .convo-name { font-size:13px; font-weight:700; }
+  .convo-time { font-size:10.5px; color:var(--text3); }
+  .convo-last { font-size:11.5px; color:var(--text3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
+  .unread-badge { background:var(--accent); color:var(--bg); font-size:9.5px; font-weight:900; width:17px; height:17px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .chat-area { display:flex; flex-direction:column; }
+  .chat-head { padding:14px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:11px; }
+  .chat-name { font-size:14px; font-weight:800; }
+  .chat-status { font-size:11.5px; color:var(--accent4); }
+  .chat-acts { margin-left:auto; display:flex; gap:7px; }
+  .chat-act { width:34px; height:34px; border-radius:50%; background:var(--surface2); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:15px; color:var(--text2); transition:all 0.18s; }
+  .chat-act:hover { background:var(--surface3); color:var(--text); }
+  .chat-msgs { flex:1; overflow-y:auto; padding:18px; display:flex; flex-direction:column; gap:11px; }
+  .bubble { max-width:68%; }
+  .bubble.sent { align-self:flex-end; }
+  .bubble.recv { align-self:flex-start; }
+  .bubble-body { padding:10px 14px; border-radius:15px; font-size:13.5px; line-height:1.5; }
+  .sent .bubble-body { background:rgba(232,255,71,0.11); border-bottom-right-radius:4px; }
+  .recv .bubble-body { background:var(--surface2); border-bottom-left-radius:4px; }
+  .bubble-t { font-size:9.5px; color:var(--text3); margin-top:3px; }
+  .sent .bubble-t { text-align:right; }
+  .sys-msg { align-self:center; background:var(--surface3); border-radius:8px; padding:7px 13px; font-size:11.5px; color:var(--text2); text-align:center; }
+  .chat-input-row { padding:14px 18px; border-top:1px solid var(--border); display:flex; gap:9px; align-items:center; }
+  .chat-input { flex:1; background:var(--surface2); border:1px solid var(--border); border-radius:50px; padding:10px 17px; color:var(--text); font-family:var(--font-body); font-size:13.5px; outline:none; transition:border-color 0.2s; }
+  .chat-input:focus { border-color:rgba(232,255,71,0.3); }
+  .chat-input::placeholder { color:var(--text3); }
+  .send-btn { width:40px; height:40px; border-radius:50%; background:var(--accent); border:none; display:flex; align-items:center; justify-content:center; font-size:17px; color:var(--bg); cursor:pointer; transition:transform 0.18s; flex-shrink:0; }
+  .send-btn:hover { transform:scale(1.08); }
+
+  /* ─── PREMIUM ────────────────────────────────── */
+  .prem-hero { text-align:center; padding:56px 36px; background:linear-gradient(180deg,rgba(124,92,252,0.1) 0%,transparent 100%); border:1px solid rgba(124,92,252,0.2); border-radius:var(--radius); margin-bottom:36px; }
+  .prem-crown { font-size:52px; margin-bottom:18px; }
+  .prem-title { font-family:var(--font-display); font-size:40px; font-weight:900; letter-spacing:-2px; margin-bottom:11px; background:var(--premium); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+  .prem-sub { color:var(--text2); font-size:15px; max-width:460px; margin:0 auto; }
+  .plans-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-bottom:36px; }
+  .plan { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:26px; position:relative; transition:all 0.2s; }
+  .plan.highlight { border-color:rgba(247,201,72,0.4); background:linear-gradient(160deg,rgba(247,201,72,0.07) 0%,var(--surface) 55%); transform:scale(1.03); }
+  .plan-pop { position:absolute; top:-11px; left:50%; transform:translateX(-50%); background:var(--premium); color:var(--bg); font-size:10px; font-weight:900; padding:4px 15px; border-radius:20px; white-space:nowrap; }
+  .plan-name { font-family:var(--font-display); font-size:17px; font-weight:900; margin-bottom:7px; }
+  .plan-price { font-family:var(--font-display); font-size:38px; font-weight:900; letter-spacing:-2px; margin-bottom:4px; }
+  .plan-price span { font-size:15px; font-weight:400; color:var(--text2); }
+  .plan-desc { font-size:12.5px; color:var(--text2); margin-bottom:18px; }
+  .plan-feats { list-style:none; margin-bottom:22px; }
+  .plan-feats li { font-size:12.5px; padding:6px 0; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:7px; }
+  .plan-feats li:last-child { border-bottom:none; }
+  .f-ok { color:var(--accent4); }
+  .f-no { color:var(--text3); }
+  .plan-btn { width:100%; padding:12px; border-radius:50px; border:none; font-size:13.5px; font-weight:800; cursor:pointer; transition:opacity 0.18s; font-family:var(--font-body); }
+  .plan-btn.basic { background:var(--surface2); color:var(--text); border:1px solid var(--border); }
+  .plan-btn.gold { background:var(--premium); color:var(--bg); }
+  .plan-btn:hover { opacity:0.84; }
+
+  /* ─── AUTH MODAL ─────────────────────────────── */
+  .overlay { position:fixed; inset:0; background:rgba(0,0,0,0.72); backdrop-filter:blur(12px); display:none; align-items:center; justify-content:center; z-index:500; }
+  .overlay.show { display:flex; }
+  .modal { background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:34px; width:410px; max-width:92vw; animation:slideUp 0.28s ease; }
+  @keyframes slideUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+  .modal-close { float:right; background:none; border:none; color:var(--text2); font-size:19px; cursor:pointer; }
+  .modal-title { font-family:var(--font-display); font-size:22px; font-weight:900; margin-bottom:5px; }
+  .modal-sub { font-size:12.5px; color:var(--text2); margin-bottom:22px; }
+  .modal-tabs { display:flex; gap:3px; background:var(--surface2); border-radius:50px; padding:4px; margin-bottom:22px; }
+  .modal-tab { flex:1; padding:8px; border-radius:50px; text-align:center; font-size:12.5px; font-weight:700; cursor:pointer; color:var(--text2); transition:all 0.18s; }
+  .modal-tab.active { background:var(--surface3); color:var(--text); }
+  .f-label { font-size:11.5px; color:var(--text2); margin-bottom:5px; display:block; font-weight:600; }
+  .f-input { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:11px 15px; color:var(--text); font-family:var(--font-body); font-size:13.5px; outline:none; transition:border-color 0.2s; margin-bottom:13px; }
+  .f-input:focus { border-color:rgba(232,255,71,0.3); }
+  .f-input::placeholder { color:var(--text3); }
+  .or-line { text-align:center; color:var(--text3); font-size:11.5px; margin:14px 0; position:relative; }
+  .or-line::before,.or-line::after { content:''; position:absolute; top:50%; width:41%; height:1px; background:var(--border); }
+  .or-line::before { left:0 } .or-line::after { right:0 }
+  .google-btn { width:100%; padding:11px; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); font-family:var(--font-body); font-size:13.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:9px; transition:background 0.18s; margin-bottom:13px; }
+  .google-btn:hover { background:var(--surface3); }
+  .submit-btn { width:100%; padding:12px; background:var(--accent); border:none; border-radius:var(--radius-sm); color:var(--bg); font-family:var(--font-body); font-size:13.5px; font-weight:800; cursor:pointer; transition:opacity 0.18s; }
+  .submit-btn:hover { opacity:0.87; }
+
+  .ai-glow { background:linear-gradient(135deg,rgba(0,212,170,0.07),rgba(232,255,71,0.04)); border-color:rgba(0,212,170,0.16) !important; }
+
+  ::-webkit-scrollbar { width:5px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:var(--surface3); border-radius:3px; }
+
+  @media (max-width:880px) {
+    .sidebar { transform:translateX(-100%); }
+    .sidebar.open { transform:translateX(0); }
+    .main { margin-left:0; }
+    .hamburger { display:flex; }
+    .feed-grid,.news-hero,.plans-grid { grid-template-columns:1fr; }
+    .msg-layout { grid-template-columns:1fr; }
+    .msg-sidebar { display:none; }
+    .video-grid { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="splash-logo">NEXUS</div>
+  <div class="splash-tagline">Stories · Videos · Community · News</div>
+  <div class="splash-bar-wrap"><div class="splash-bar"></div></div>
+</div>
+
+<!-- AUTH MODAL -->
+<div class="overlay" id="authModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeAuth()">✕</button>
+    <div class="modal-title">Join Nexus</div>
+    <div class="modal-sub">Secure sign-in — phone number or Gmail only · No outside links</div>
+    <div class="modal-tabs">
+      <div class="modal-tab active" onclick="switchTab(this)">Sign In</div>
+      <div class="modal-tab" onclick="switchTab(this)">Sign Up</div>
+    </div>
+    <button class="google-btn">
+      <svg width="18" height="18" viewBox="0 0 48 48" style="flex-shrink:0"><path fill="#4285F4" d="M44.5 20H24v8.5h11.7C34.1 33.5 29.6 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l6-6C34.5 6.5 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 19.7-8 19.7-20 0-1.3-.1-2.7-.2-4z"/><path fill="#34A853" d="M6.3 14.7l7 5.1C15.1 17 19.3 14 24 14c3 0 5.8 1.1 7.9 3l6-6C34.5 6.5 29.5 4 24 4 16.3 4 9.7 8.4 6.3 14.7z"/><path fill="#FBBC05" d="M24 44c5.2 0 9.9-1.8 13.6-4.7l-6.3-5.2C29.4 35.6 26.8 36 24 36c-6.6 0-12.2-4.4-14.2-10.5l-7 5.4C6.4 39.5 14.6 44 24 44z"/><path fill="#EA4335" d="M44.5 20H24v8.5h11.7c-.9 2.5-2.5 4.6-4.7 6.1l6.3 5.2C41.2 36.2 44 30.5 44 24c0-1.3-.2-2.7-.5-4z"/></svg>
+      Continue with Google (Gmail)
+    </button>
+    <div class="or-line">or use phone number</div>
+    <label class="f-label">Phone Number</label>
+    <input class="f-input" placeholder="+1 (555) 000-0000" type="tel">
+    <label class="f-label">Password</label>
+    <input class="f-input" placeholder="Enter password" type="password">
+    <button class="submit-btn" onclick="closeAuth()">Continue →</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app">
+
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-name">NEXUS</div>
+      <div class="brand-tagline">AI-Powered · Self-Contained · Version 2.0</div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">Discover</div>
+      <div class="nav-item active" onclick="goPage('home',this)"><span class="nav-ico">⚡</span>Home Feed</div>
+      <div class="nav-item" onclick="goPage('videos',this)"><span class="nav-ico">🎬</span>Videos<span class="nav-badge">New</span></div>
+      <div class="nav-item" onclick="goPage('stories',this)"><span class="nav-ico">📖</span>Stories</div>
+      <div class="nav-item" onclick="goPage('news',this)"><span class="nav-ico">📡</span>News<span class="nav-badge live">Live</span></div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">Social</div>
+      <div class="nav-item" onclick="goPage('community',this)"><span class="nav-ico">🌐</span>Community</div>
+      <div class="nav-item" onclick="goPage('messages',this)"><span class="nav-ico">💬</span>Messages<span class="nav-badge">3</span></div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">Account</div>
+      <div class="nav-item" onclick="goPage('premium',this)"><span class="nav-ico">✦</span>Premium</div>
+      <div class="nav-item" onclick="openAuth()"><span class="nav-ico">⚙️</span>Settings</div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="user-row" onclick="openAuth()">
+        <div class="u-avatar">A</div>
+        <div><div class="u-name">Alex Nexus</div><div class="u-role">✦ PREMIUM · Author</div></div>
+        <span style="margin-left:auto;color:var(--text3);font-size:12px;">›</span>
+      </div>
+    </div>
+  </nav>
+
+  <div class="main">
+
+    <div class="topbar">
+      <div class="hamburger" onclick="toggleSidebar()">☰</div>
+      <div class="search-wrap">
+        <span style="color:var(--text3);font-size:15px;">🔍</span>
+        <input placeholder="Search stories, videos, news, people…">
+      </div>
+      <div class="tb-actions">
+        <div class="tb-btn" onclick="openAuth()">🔔<span class="notif-dot"></span></div>
+        <div class="tb-btn">🔖</div>
+        <div class="tb-btn" onclick="openAuth()">👤</div>
+      </div>
+    </div>
+
+    <!-- HOME -->
+    <div class="page active" id="page-home">
+      <div class="pg">
+        <div class="pg-title">Good morning, <em>Alex</em> 👋</div>
+        <div class="pg-sub">AI-curated just for you · Everything lives inside Nexus — no outside links</div>
+
+        <div class="stories-strip">
+          <div class="story-chip add-chip" onclick="openAuth()"><div class="story-ring"><div class="story-face">+</div></div><div class="story-label">Your Status</div></div>
+          <div class="story-chip" onclick="openAuth()"><div class="story-ring"><div class="story-face">🧑</div></div><div class="story-label">Mia K.</div></div>
+          <div class="story-chip" onclick="openAuth()"><div class="story-ring"><div class="story-face">👩</div></div><div class="story-label">Sara J.</div></div>
+          <div class="story-chip" onclick="openAuth()"><div class="story-ring"><div class="story-face">🧔</div></div><div class="story-label">Marcus</div></div>
+          <div class="story-chip" onclick="openAuth()"><div class="story-ring seen"><div class="story-face">👱</div></div><div class="story-label">Lena B.</div></div>
+          <div class="story-chip" onclick="openAuth()"><div class="story-ring seen"><div class="story-face">🧕</div></div><div class="story-label">Nadia A.</div></div>
+          <div class="story-chip" onclick="goPage('news',null)"><div class="story-ring"><div class="story-face">📡</div></div><div class="story-label">AI News</div></div>
+        </div>
+
+        <div class="feed-grid">
+          <div>
+            <div class="create-box">
+              <div class="create-row">
+                <div class="u-avatar">A</div>
+                <input class="create-field" placeholder="Share a story, video, or status…">
+              </div>
+              <div class="create-tools">
+                <div class="create-btn" onclick="openAuth()">🎬 Video</div>
+                <div class="create-btn" onclick="openAuth()">📖 Story</div>
+                <div class="create-btn" onclick="openAuth()">📷 Status</div>
+                <div class="create-btn" onclick="openAuth()">📰 Article</div>
+              </div>
+            </div>
+
+            <div class="status-banner">
+              <div class="sb-icon">📺</div>
+              <div class="sb-info">
+                <div class="sb-title">Marcus posted a new status</div>
+                <div class="sb-sub">Message him (1) or save his name (2) to view it • Expires in</div>
+              </div>
+              <div class="sb-timer" id="statusTimer">38:42h</div>
+            </div>
+
+            <div class="post-card">
+              <div class="post-head">
+                <div class="p-avatar" style="background:linear-gradient(135deg,#e8ff47,#00d4aa);font-size:17px;">🤖</div>
+                <div class="p-meta"><div class="p-author">NEXUS AI <span class="p-verified">✓</span></div><div class="p-time">2 min ago · Auto-updated</div></div>
+                <div class="p-tag tag-ai">AI Pick</div>
+              </div>
+              <div class="p-body">
+                <div class="p-title">The Future of Renewable Energy: What Scientists Found in Antarctica</div>
+                <div class="p-text">A breakthrough study reveals ice-core samples contain clues to clean energy solutions. AI-verified from 47 internal sources.</div>
+              </div>
+              <div class="p-actions">
+                <button class="act-btn liked" onclick="this.classList.toggle('liked')">❤️ 2.4K</button>
+                <button class="act-btn">💬 184</button>
+                <button class="act-btn">🔁 Share</button>
+                <button class="act-btn act-ml">🔖</button>
+              </div>
+            </div>
+
+            <div class="post-card">
+              <div class="post-head">
+                <div class="p-avatar" style="background:linear-gradient(135deg,#ff5c8a,#7c5cfc);">M</div>
+                <div class="p-meta"><div class="p-author">MarcusTech <span class="p-verified">✓</span></div><div class="p-time">1 hour ago</div></div>
+                <div class="p-tag tag-video">Video</div>
+              </div>
+              <div class="p-media" onclick="goPage('videos',null)">
+                <div class="p-media-grad" style="background:linear-gradient(135deg,rgba(124,92,252,0.28),rgba(255,92,138,0.18));"></div>
+                <span style="position:relative">🚀</span>
+                <div class="p-play">▶</div>
+              </div>
+              <div class="p-body">
+                <div class="p-title">Top 10 Tech Innovations You Missed in 2025</div>
+                <div class="p-text">From quantum computing to neural interfaces — Marcus breaks down the biggest shifts happening right now.</div>
+              </div>
+              <div class="p-actions">
+                <button class="act-btn">❤️ 8.7K</button>
+                <button class="act-btn">💬 431</button>
+                <button class="act-btn">🔁 Share</button>
+                <button class="act-btn act-ml">🔖</button>
+              </div>
+            </div>
+
+            <div class="post-card">
+              <div class="post-head">
+                <div class="p-avatar" style="background:linear-gradient(135deg,#7c5cfc,#00d4aa);">L</div>
+                <div class="p-meta"><div class="p-author">Lena Bright <span class="p-verified">✓</span></div><div class="p-time">3 hours ago · Author</div></div>
+                <div class="p-tag tag-story">Story</div>
+              </div>
+              <div class="p-body">
+                <div class="p-title" style="font-style:italic;">"The Last Library at the Edge of the World"</div>
+                <div class="p-text">Chapter 12: Amara finally opened the obsidian door, her hands trembling as centuries of dust fell away to reveal a room filled with light and whispering voices…</div>
+              </div>
+              <div class="p-actions">
+                <button class="act-btn">❤️ 5.1K</button>
+                <button class="act-btn">💬 289</button>
+                <button class="act-btn" onclick="goPage('stories',null)">📖 Read Full</button>
+                <button class="act-btn act-ml">🔖</button>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="widget">
+              <div class="widget-hd">Trending Now <span class="widget-more">See all</span></div>
+              <div class="trend-row"><div class="trend-n">1</div><div class="trend-info"><div class="trend-topic">#AIRevolution</div><div class="trend-count">124K posts</div></div><span style="color:var(--text3);font-size:11px;">↑</span></div>
+              <div class="trend-row"><div class="trend-n">2</div><div class="trend-info"><div class="trend-topic">#ClimateBreak</div><div class="trend-count">89K posts</div></div><span style="color:var(--text3);font-size:11px;">↑</span></div>
+              <div class="trend-row"><div class="trend-n">3</div><div class="trend-info"><div class="trend-topic">#NexusStories</div><div class="trend-count">72K posts</div></div><span style="color:var(--text3);font-size:11px;">↑</span></div>
+              <div class="trend-row"><div class="trend-n">4</div><div class="trend-info"><div class="trend-topic">#SpaceNews</div><div class="trend-count">61K posts</div></div><span style="color:var(--text3);font-size:11px;">→</span></div>
+              <div class="trend-row"><div class="trend-n">5</div><div class="trend-info"><div class="trend-topic">#TechToday</div><div class="trend-count">54K posts</div></div><span style="color:var(--text3);font-size:11px;">↑</span></div>
+            </div>
+            <div class="widget">
+              <div class="widget-hd">Channels For You <span class="widget-more">Browse</span></div>
+              <div class="ch-row"><div class="ch-icon" style="background:rgba(232,255,71,0.09);">📡</div><div class="ch-info"><div class="ch-name">Tech Daily</div><div class="ch-subs">1.2M members</div></div><div class="follow-btn" onclick="toggleFollow(this)">Follow</div></div>
+              <div class="ch-row"><div class="ch-icon" style="background:rgba(124,92,252,0.09);">🌍</div><div class="ch-info"><div class="ch-name">World Watch</div><div class="ch-subs">890K members</div></div><div class="follow-btn ing" onclick="toggleFollow(this)">Following</div></div>
+              <div class="ch-row"><div class="ch-icon" style="background:rgba(255,92,138,0.09);">📖</div><div class="ch-info"><div class="ch-name">Story Hub</div><div class="ch-subs">540K members</div></div><div class="follow-btn" onclick="toggleFollow(this)">Follow</div></div>
+              <div class="ch-row"><div class="ch-icon" style="background:rgba(0,212,170,0.09);">🔬</div><div class="ch-info"><div class="ch-name">ScienceNow</div><div class="ch-subs">430K members</div></div><div class="follow-btn" onclick="toggleFollow(this)">Follow</div></div>
+            </div>
+            <div class="widget ai-glow">
+              <div class="widget-hd" style="color:var(--accent4);">🤖 AI Curator Active</div>
+              <div style="font-size:12.5px;color:var(--text2);line-height:1.6;">Nexus AI scans all platform sources to deliver the most accurate, relevant content for you — everything stays inside Nexus, no external sites.</div>
+              <div style="margin-top:13px;display:flex;gap:7px;flex-wrap:wrap;font-size:10.5px;">
+                <span style="background:rgba(0,212,170,0.1);color:var(--accent4);padding:4px 10px;border-radius:20px;font-weight:700;">47 sources checked</span>
+                <span style="background:rgba(232,255,71,0.08);color:var(--accent);padding:4px 10px;border-radius:20px;font-weight:700;">99.2% accurate</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIDEOS -->
+    <div class="page" id="page-videos">
+      <div class="pg">
+        <div class="pg-title">Watch <em>Videos</em></div>
+        <div class="pg-sub">HD quality · Creator-owned · Hosted entirely within Nexus</div>
+        <div class="tabs"><div class="tab active">For You</div><div class="tab">Following</div><div class="tab">Trending</div><div class="tab">Live 🔴</div></div>
+        <div class="video-grid">
+          <div class="v-card"><div class="v-thumb"><div class="v-grad" style="background:linear-gradient(135deg,rgba(232,255,71,0.18),rgba(124,92,252,0.14));"></div>🚀<div class="v-dur">14:32</div></div><div class="v-info"><div class="v-title">The Next 10 Years of Space Exploration — What's Really Coming</div><div class="v-meta"><span class="v-author">MarcusTech</span> · 2.1M views · 3 days ago</div></div></div>
+          <div class="v-card"><div class="v-thumb"><div class="v-grad" style="background:linear-gradient(135deg,rgba(255,92,138,0.18),rgba(124,92,252,0.14));"></div>🧠<div class="v-dur">8:14</div></div><div class="v-info"><div class="v-title">How AI is Transforming Healthcare in 2025</div><div class="v-meta"><span class="v-author">ScienceNow</span> · 890K views · 1 week ago</div></div></div>
+          <div class="v-card"><div class="v-thumb"><div class="v-grad" style="background:linear-gradient(135deg,rgba(0,212,170,0.18),rgba(232,255,71,0.1));"></div>🌿<div class="v-dur">22:07</div></div><div class="v-info"><div class="v-title">Zero Waste Living: One Year Later — Complete Update</div><div class="v-meta"><span class="v-author">EcoLena</span> · 1.4M views · 5 days ago</div></div></div>
+          <div class="v-card"><div class="v-thumb"><div class="v-grad" style="background:linear-gradient(135deg,rgba(124,92,252,0.22),rgba(255,92,138,0.14));"></div>🎵<div class="v-dur">5:58</div></div><div class="v-info"><div class="v-title">Live Session: Original Compositions 2025</div><div class="v-meta"><span class="v-author">Aria Plays</span> · 340K views · 2 days ago</div></div></div>
+          <div class="v-card"><div class="v-thumb"><div class="v-grad" style="background:linear-gradient(135deg,rgba(232,255,71,0.14),rgba(0,212,170,0.1));"></div>💰<div class="v-dur">18:22</div></div><div class="v-info"><div class="v-title">How I Earned $40K Writing Stories on Nexus — Real Numbers</div><div class="v-meta"><span class="v-author">Lena Bright</span> · 2.8M views · 1 day ago</div></div></div>
+          <div class="v-card"><div class="v-thumb"><div class="v-grad" style="background:linear-gradient(135deg,rgba(255,92,138,0.14),rgba(232,255,71,0.1));"></div>🏋️<div class="v-dur">31:44</div></div><div class="v-info"><div class="v-title">Full Body Strength Workout — No Equipment Needed</div><div class="v-meta"><span class="v-author">FitWith Nadia</span> · 670K views · 4 days ago</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STORIES -->
+    <div class="page" id="page-stories">
+      <div class="pg">
+        <div class="pg-title">Read <em>Stories</em></div>
+        <div class="pg-sub">Discover authors · Earn per reader · AI-recommended — all inside Nexus</div>
+        <div class="tabs"><div class="tab active">Recommended</div><div class="tab">Following</div><div class="tab">Fiction</div><div class="tab">Non-Fiction</div><div class="tab">AI Picks</div></div>
+        <div class="stories-grid">
+          <div class="s-card"><div class="s-type">🏆 Editor's Pick</div><div class="s-title">The Last Library at the Edge of the World</div><div class="s-excerpt">A young archivist discovers a hidden vault beneath civilization's ruins, containing the last copies of all human knowledge — and a terrible secret.</div><div class="s-footer"><div class="u-avatar" style="width:26px;height:26px;font-size:10px;">L</div><span style="font-size:12.5px;font-weight:700;">Lena Bright</span><span class="s-read">· 12 min · Ch.12</span><div class="earn-tag">💰 Earns</div></div></div>
+          <div class="s-card"><div class="s-type">🤖 AI Recommended</div><div class="s-title">When the Machines Learned to Dream</div><div class="s-excerpt">A neuroscientist creates an AI that begins to exhibit genuine consciousness, forcing humanity to confront what it means to be alive.</div><div class="s-footer"><div class="u-avatar" style="width:26px;height:26px;font-size:10px;background:linear-gradient(135deg,#ff5c8a,#7c5cfc);">K</div><span style="font-size:12.5px;font-weight:700;">K. Morrison</span><span class="s-read">· 18 min</span><div class="earn-tag">💰 Earns</div></div></div>
+          <div class="s-card"><div class="s-type">📈 Trending</div><div class="s-title">How I Built a $2M Business From My Bedroom</div><div class="s-excerpt">The unfiltered, real story of building a company from scratch with zero funding, relentless persistence, and a lot of failure.</div><div class="s-footer"><div class="u-avatar" style="width:26px;height:26px;font-size:10px;background:linear-gradient(135deg,#e8ff47,#00d4aa);color:#0a0a0f;">J</div><span style="font-size:12.5px;font-weight:700;">James Osei</span><span class="s-read">· 25 min</span><div class="earn-tag">💰 Earns</div></div></div>
+          <div class="s-card"><div class="s-type">✨ New Release</div><div class="s-title">Midnight in the Quantum Garden</div><div class="s-excerpt">A physicist and a poet fall in love navigating parallel universes where every choice spawns a new reality — and a new heartbreak.</div><div class="s-footer"><div class="u-avatar" style="width:26px;height:26px;font-size:10px;background:linear-gradient(135deg,#00d4aa,#7c5cfc);">S</div><span style="font-size:12.5px;font-weight:700;">Sara J.</span><span class="s-read">· 9 min</span><div class="earn-tag">💰 Earns</div></div></div>
+          <div class="s-card"><div class="s-type">🌟 Premium</div><div class="s-title">The Architecture of Memory</div><div class="s-excerpt">A renowned architect discovers she can literally build structures from her own memories, erecting monuments to love, loss, and the passage of time.</div><div class="s-footer"><div class="u-avatar" style="width:26px;height:26px;font-size:10px;background:linear-gradient(135deg,#f7c948,#ff8c42);">N</div><span style="font-size:12.5px;font-weight:700;">Nadia A.</span><span class="s-read">· 15 min</span><div class="earn-tag">💰 Earns</div></div></div>
+          <div class="s-card"><div class="s-type">🔥 Viral</div><div class="s-title">Letters I Never Sent: A Memoir</div><div class="s-excerpt">Forty years of unsent letters to people who shaped me — my grandmother, first love, estranged father, and a stranger who saved my life.</div><div class="s-footer"><div class="u-avatar" style="width:26px;height:26px;font-size:10px;background:linear-gradient(135deg,#ff5c8a,#f7c948);">M</div><span style="font-size:12.5px;font-weight:700;">Mia K.</span><span class="s-read">· 32 min</span><div class="earn-tag">💰 Earns</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NEWS -->
+    <div class="page" id="page-news">
+      <div class="pg">
+        <div class="pg-title">Accurate <em>News</em></div>
+        <div class="pg-sub">AI-verified · Cross-checked against multiple internal sources · No misinformation · No outside links</div>
+        <div class="tabs"><div class="tab active">All</div><div class="tab">World</div><div class="tab">Tech</div><div class="tab">Science</div><div class="tab">Business</div><div class="tab">Health</div></div>
+        <div class="news-hero">
+          <div class="news-hero-media">
+            <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,212,170,0.22),rgba(232,255,71,0.1));"></div>
+            <span style="position:relative;font-size:76px;">🌍</span>
+          </div>
+          <div class="news-hero-body">
+            <div class="ai-verified">🤖 AI-Verified · 99.4% Accurate</div>
+            <div class="news-hero-title">Global Climate Summit Reaches Historic Agreement on Carbon Elimination by 2035</div>
+            <div class="news-hero-excerpt">196 nations signed the most ambitious climate accord in history. Nexus AI confirmed the report from 89 independent internal data streams.</div>
+            <div class="news-meta">🌐 World · 12 min ago · 89 sources verified</div>
+          </div>
+        </div>
+        <div class="news-row"><div class="news-ico">🧬</div><div class="news-body"><div class="news-cat">Science</div><div class="news-title">CRISPR Gene Therapy Successfully Reverses Alzheimer's in Clinical Trial</div><div class="news-time">34 min ago · 15 verified sources</div></div><div class="accuracy-col"><div class="acc-bar"><div class="acc-fill" style="width:98%"></div></div><div class="acc-lbl">98% verified</div></div></div>
+        <div class="news-row"><div class="news-ico">💻</div><div class="news-body"><div class="news-cat">Technology</div><div class="news-title">Quantum Computer Solves 10,000-Year Problem in Under 4 Minutes</div><div class="news-time">1 hr ago · 11 verified sources</div></div><div class="accuracy-col"><div class="acc-bar"><div class="acc-fill" style="width:95%"></div></div><div class="acc-lbl">95% verified</div></div></div>
+        <div class="news-row"><div class="news-ico">🚀</div><div class="news-body"><div class="news-cat">Space</div><div class="news-title">Mars Mission Crew Discovers Subsurface Water Ice Larger Than Pacific Ocean</div><div class="news-time">2 hr ago · 22 verified sources</div></div><div class="accuracy-col"><div class="acc-bar"><div class="acc-fill" style="width:97%"></div></div><div class="acc-lbl">97% verified</div></div></div>
+        <div class="news-row"><div class="news-ico">💊</div><div class="news-body"><div class="news-cat">Health</div><div class="news-title">New Longevity Drug Approved — Extends Healthy Lifespan by Average 25 Years</div><div class="news-time">3 hr ago · 26 verified sources</div></div><div class="accuracy-col"><div class="acc-bar"><div class="acc-fill" style="width:91%"></div></div><div class="acc-lbl">91% verified</div></div></div>
+        <div class="news-row"><div class="news-ico">⚡</div><div class="news-body"><div class="news-cat">Business</div><div class="news-title">AI-Driven Economy Adds 12 Million New Jobs Globally in Q3 2025</div><div class="news-time">4 hr ago · 18 verified sources</div></div><div class="accuracy-col"><div class="acc-bar"><div class="acc-fill" style="width:93%"></div></div><div class="acc-lbl">93% verified</div></div></div>
+      </div>
+    </div>
+
+    <!-- COMMUNITY -->
+    <div class="page" id="page-community">
+      <div class="pg">
+        <div class="pg-title">Your <em>Community</em></div>
+        <div class="pg-sub">Choose your channels · Follow creators · Everything stays inside Nexus</div>
+        <div class="com-hero">
+          <div class="com-hero-icon">🌐</div>
+          <div class="com-hero-info">
+            <div class="com-hero-name">Nexus Global Community</div>
+            <div class="com-stats">
+              <div class="com-stat"><strong>42M</strong> members</div>
+              <div class="com-stat"><strong>2.1M</strong> online now</div>
+              <div class="com-stat"><strong>890K</strong> posts today</div>
+            </div>
+          </div>
+          <button class="join-all-btn">Join All Channels</button>
+        </div>
+        <div style="font-family:var(--font-display);font-size:17px;font-weight:900;margin-bottom:14px;letter-spacing:-0.5px;">Browse Channels</div>
+        <div class="com-grid">
+          <div class="com-card"><div class="com-card-ico">🤖</div><div class="com-card-name">AI & Technology</div><div class="com-card-desc">The latest in AI, machine learning, and the tech future. Daily updates curated by Nexus AI.</div><div class="com-card-foot"><span class="com-members">8.2M members</span><div class="follow-btn" onclick="toggleFollow(this)">Follow</div></div></div>
+          <div class="com-card"><div class="com-card-ico">🌿</div><div class="com-card-name">Climate & Nature</div><div class="com-card-desc">Environmental news, sustainability tips, and nature photography from around the world.</div><div class="com-card-foot"><span class="com-members">5.1M members</span><div class="follow-btn ing" onclick="toggleFollow(this)">Following</div></div></div>
+          <div class="com-card"><div class="com-card-ico">📖</div><div class="com-card-name">Authors Guild</div><div class="com-card-desc">A home for writers and readers. Share work, get feedback, grow your audience, and earn.</div><div class="com-card-foot"><span class="com-members">3.8M members</span><div class="follow-btn ing" onclick="toggleFollow(this)">Following</div></div></div>
+          <div class="com-card"><div class="com-card-ico">🎬</div><div class="com-card-name">Video Creators</div><div class="com-card-desc">Tips, collabs, and a space for video creators to connect, grow, and monetize on Nexus.</div><div class="com-card-foot"><span class="com-members">6.4M members</span><div class="follow-btn" onclick="toggleFollow(this)">Follow</div></div></div>
+          <div class="com-card"><div class="com-card-ico">🧬</div><div class="com-card-name">Science & Research</div><div class="com-card-desc">Peer-reviewed science made accessible. Breakthroughs and discoveries, explained simply.</div><div class="com-card-foot"><span class="com-members">2.9M members</span><div class="follow-btn" onclick="toggleFollow(this)">Follow</div></div></div>
+          <div class="com-card"><div class="com-card-ico">💰</div><div class="com-card-name">Finance & Investing</div><div class="com-card-desc">Markets, personal finance, and economic analysis. Smart money conversations stay here.</div><div class="com-card-foot"><span class="com-members">4.3M members</span><div class="follow-btn" onclick="toggleFollow(this)">Follow</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MESSAGES -->
+    <div class="page" id="page-messages">
+      <div class="pg" style="padding-bottom:0;">
+        <div class="pg-title">Messages</div>
+        <div class="pg-sub">Verified by phone number or Gmail · End-to-end encrypted · Status visible only to saved contacts</div>
+      </div>
+      <div style="padding:0 30px 30px;">
+        <div class="msg-layout">
+          <div class="msg-sidebar">
+            <div class="msg-search-wrap"><input class="msg-search" placeholder="🔍  Search conversations…"></div>
+            <div class="convo-list">
+              <div class="convo active"><div class="convo-av" style="background:linear-gradient(135deg,#ff5c8a,#7c5cfc);">M<div class="online-dot"></div></div><div class="convo-info"><div class="convo-top"><div class="convo-name">Marcus Tech</div><div class="convo-time">2m</div></div><div class="convo-last">Did you see the new space news?</div></div><div class="unread-badge">2</div></div>
+              <div class="convo"><div class="convo-av" style="background:linear-gradient(135deg,#e8ff47,#00d4aa);color:#0a0a0f;">L</div><div class="convo-info"><div class="convo-top"><div class="convo-name">Lena Bright</div><div class="convo-time">1h</div></div><div class="convo-last">New chapter is live! 📖</div></div><div class="unread-badge">1</div></div>
+              <div class="convo"><div class="convo-av" style="background:linear-gradient(135deg,#7c5cfc,#00d4aa);">N</div><div class="convo-info"><div class="convo-top"><div class="convo-name">Nadia A.</div><div class="convo-time">3h</div></div><div class="convo-last">Thanks for the follow! 🙏</div></div></div>
+              <div class="convo"><div class="convo-av" style="background:linear-gradient(135deg,#f7c948,#ff8c42);">S<div class="online-dot"></div></div><div class="convo-info"><div class="convo-top"><div class="convo-name">Sara J.</div><div class="convo-time">1d</div></div><div class="convo-last">Check out my new video!</div></div></div>
+            </div>
+          </div>
+          <div class="chat-area">
+            <div class="chat-head">
+              <div class="convo-av" style="background:linear-gradient(135deg,#ff5c8a,#7c5cfc);width:38px;height:38px;">M</div>
+              <div><div class="chat-name">Marcus Tech</div><div class="chat-status">● Online now</div></div>
+              <div class="chat-acts"><div class="chat-act">📞</div><div class="chat-act">📹</div><div class="chat-act">ℹ️</div></div>
+            </div>
+            <div class="chat-msgs" id="chatMessages">
+              <div class="sys-msg">🔒 End-to-end encrypted · Verified via phone number · No data leaves Nexus</div>
+              <div class="bubble recv"><div class="bubble-body">Hey! Have you seen the latest Nexus updates? The AI curation is insane 🤖</div><div class="bubble-t">10:24 AM</div></div>
+              <div class="bubble sent"><div class="bubble-body">Yeah! 50+ internal sources now. Accuracy is 99% — completely self-contained.</div><div class="bubble-t">10:26 AM</div></div>
+              <div class="bubble recv"><div class="bubble-body">Did you see the Mars water story?? 🚀</div><div class="bubble-t">10:27 AM</div></div>
+              <div class="bubble sent"><div class="bubble-body">Shared it everywhere. Also Lena's Chapter 12 dropped — it's 🔥</div><div class="bubble-t">10:30 AM</div></div>
+              <div class="bubble recv"><div class="bubble-body">Did you see the new space news? 🌌</div><div class="bubble-t">10:41 AM</div></div>
+            </div>
+            <div class="chat-input-row">
+              <div class="chat-act">😊</div>
+              <div class="chat-act">📎</div>
+              <input class="chat-input" id="chatInput" placeholder="Write a message…" onkeydown="sendMsg(event)">
+              <button class="send-btn" onclick="sendMsgBtn()">➤</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PREMIUM -->
+    <div class="page" id="page-premium">
+      <div class="pg">
+        <div class="prem-hero">
+          <div class="prem-crown">✦</div>
+          <div class="prem-title">Go Premium</div>
+          <div class="prem-sub">Unlock the full Nexus experience — ad-free, exclusive content, and powerful creator tools</div>
+        </div>
+        <div class="plans-grid">
+          <div class="plan">
+            <div class="plan-name">Free</div>
+            <div class="plan-price">$0<span> / month</span></div>
+            <div class="plan-desc">Start exploring Nexus at no cost</div>
+            <ul class="plan-feats">
+              <li><span class="f-ok">✓</span> All stories &amp; news</li>
+              <li><span class="f-ok">✓</span> Video streaming (720p)</li>
+              <li><span class="f-ok">✓</span> Join communities</li>
+              <li><span class="f-ok">✓</span> Phone &amp; Gmail sign-in</li>
+              <li><span class="f-no">✗</span> Ads shown</li>
+              <li><span class="f-no">✗</span> Limited AI curation</li>
+            </ul>
+            <button class="plan-btn basic">Current Plan</button>
+          </div>
+          <div class="plan highlight">
+            <div class="plan-pop">⭐ Most Popular</div>
+            <div class="plan-name" style="background:var(--premium);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;">Premium</div>
+            <div class="plan-price">$9<span> / month</span></div>
+            <div class="plan-desc">The full Nexus experience, elevated</div>
+            <ul class="plan-feats">
+              <li><span class="f-ok">✓</span> Everything in Free</li>
+              <li><span class="f-ok">✓</span> 100% ad-free</li>
+              <li><span class="f-ok">✓</span> 4K video streaming</li>
+              <li><span class="f-ok">✓</span> Full AI news curation</li>
+              <li><span class="f-ok">✓</span> Exclusive premium stories</li>
+              <li><span class="f-ok">✓</span> Creator analytics</li>
+              <li><span class="f-ok">✓</span> Priority recommendations</li>
+            </ul>
+            <button class="plan-btn gold" onclick="openAuth()">Get Premium</button>
+          </div>
+          <div class="plan">
+            <div class="plan-name">Creator Pro</div>
+            <div class="plan-price">$24<span> / month</span></div>
+            <div class="plan-desc">For serious creators and authors</div>
+            <ul class="plan-feats">
+              <li><span class="f-ok">✓</span> Everything in Premium</li>
+              <li><span class="f-ok">✓</span> 2× author earnings</li>
+              <li><span class="f-ok">✓</span> Channel creation</li>
+              <li><span class="f-ok">✓</span> AI writing assistant</li>
+              <li><span class="f-ok">✓</span> Advanced video tools</li>
+              <li><span class="f-ok">✓</span> Verified creator badge</li>
+              <li><span class="f-ok">✓</span> Monetization dashboard</li>
+            </ul>
+            <button class="plan-btn basic" onclick="openAuth()">Get Creator Pro</button>
+          </div>
+        </div>
+        <div class="widget ai-glow" style="text-align:center;">
+          <div style="font-size:26px;margin-bottom:11px;">💰</div>
+          <div style="font-family:var(--font-display);font-size:17px;font-weight:900;margin-bottom:7px;">Authors Earn Per Reader — All Inside Nexus</div>
+          <div style="font-size:12.5px;color:var(--text2);max-width:460px;margin:0 auto;line-height:1.6;">Every story read earns its author real money. Premium reader views count 3× toward author earnings. No external payment sites — everything is handled within Nexus.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  /* ── ALL JAVASCRIPT IS INTERNAL — no external libraries ── */
+
+  // SPLASH
+  setTimeout(() => document.getElementById('splash').classList.add('hidden'), 2300);
+
+  // NAVIGATION
+  function goPage(id, el) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + id).classList.add('active');
+    if (el) {
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      el.classList.add('active');
+    }
+    document.getElementById('sidebar').classList.remove('open');
+    window.scrollTo(0, 0);
+  }
+
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', function() {
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+
+  // SIDEBAR (mobile)
+  function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+  document.addEventListener('click', function(e) {
+    const sb = document.getElementById('sidebar');
+    if (sb.classList.contains('open') && !sb.contains(e.target) && !e.target.classList.contains('hamburger')) sb.classList.remove('open');
+  });
+
+  // AUTH MODAL
+  function openAuth() { document.getElementById('authModal').classList.add('show'); }
+  function closeAuth() { document.getElementById('authModal').classList.remove('show'); }
+  document.getElementById('authModal').addEventListener('click', function(e) { if (e.target === this) closeAuth(); });
+  function switchTab(el) { document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active')); el.classList.add('active'); }
+
+  // TABS
+  document.querySelectorAll('.tabs').forEach(group => {
+    group.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', function() {
+        group.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+  });
+
+  // FOLLOW TOGGLE
+  function toggleFollow(el) {
+    const f = el.classList.contains('ing');
+    el.classList.toggle('ing', !f);
+    el.textContent = f ? 'Follow' : 'Following';
+  }
+
+  // STATUS TIMER (42-hour countdown)
+  function tickTimer() {
+    const el = document.getElementById('statusTimer');
+    if (!el || el.textContent === 'Expired') return;
+    const parts = el.textContent.replace('h','').split(':');
+    let h = parseInt(parts[0]), m = parseInt(parts[1]);
+    if (--m < 0) { m = 59; if (--h < 0) { el.textContent = 'Expired'; return; } }
+    el.textContent = h + ':' + String(m).padStart(2,'0') + 'h';
+  }
+  setInterval(tickTimer, 60000);
+
+  // CHAT
+  const replies = ['That\'s amazing! 🔥','Wow, saw that too!','Great content 🚀','Nexus keeps getting better!','Check Lena\'s new chapter 📖','The AI news is incredible 🤖'];
+  function sendMsg(e) { if (e.key === 'Enter') sendMsgBtn(); }
+  function sendMsgBtn() {
+    const input = document.getElementById('chatInput');
+    const text = input.value.trim();
+    if (!text) return;
+    appendBubble(text, 'sent');
+    input.value = '';
+    setTimeout(() => appendBubble(replies[Math.floor(Math.random() * replies.length)], 'recv'), 900 + Math.random() * 600);
+  }
+  function appendBubble(text, side) {
+    const msgs = document.getElementById('chatMessages');
+    const now = new Date();
+    const time = now.getHours() + ':' + String(now.getMinutes()).padStart(2,'0');
+    const div = document.createElement('div');
+    div.className = 'bubble ' + side;
+    const safe = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    div.innerHTML = `<div class="bubble-body">${safe}</div><div class="bubble-t">${time}</div>`;
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+</script>
+</body>
+</html>
